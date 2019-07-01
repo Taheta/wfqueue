@@ -410,16 +410,24 @@ public:
             newVal = ctx.pendingNewVal_;
             currval = nptrs->load(std::memory_order_consume);
             for (int n = _WFQ_MAX_TRY_; n > 0; n--) {
-                // if (!currval &&
-                if ( (!currval || !( currval = nptrs->load(std::memory_order_consume) ) ) &&
-                        nptrs->compare_exchange_strong(currval, newVal,
+                
+                if ( !currval ){
+                  if(nptrs->compare_exchange_strong(currval, newVal,
                                                        std::memory_order_release,
                                                        std::memory_order_consume)) {
                     ctx.hasq_ = 0;
                     atomic_thread_fence(std::memory_order_seq_cst);
                     return true;
+                  } else {
+                    atomic_thread_fence(std::memory_order_seq_cst);        
+                   }
+                  
+
+                } else {
+                  atomic_thread_fence(std::memory_order_seq_cst);        
+                 currval = nptrs->load(std::memory_order_consume);
                 }
-                atomic_thread_fence(std::memory_order_seq_cst);
+                
             }
             return false;
         }
@@ -428,15 +436,22 @@ public:
         nptrs = &nptr_[head];
         currval = nptrs->load(std::memory_order_consume);
         for (int n = _WFQ_MAX_TRY_; n > 0; n--) {
-            // if (!currval &&
-            if ( (!currval || !( currval = nptrs->load(std::memory_order_consume) ) ) &&
-                    nptrs->compare_exchange_strong(currval, newVal,
-                                                   std::memory_order_release,
-                                                   std::memory_order_consume)) {
-                atomic_thread_fence(std::memory_order_seq_cst);
-                return true;
-            }
-            atomic_thread_fence(std::memory_order_seq_cst);
+          if ( !currval ){
+                  if(nptrs->compare_exchange_strong(currval, newVal,
+                                                       std::memory_order_release,
+                                                       std::memory_order_consume)) {
+                   // ctx.hasq_ = 0;
+                    atomic_thread_fence(std::memory_order_seq_cst);
+                    return true;
+                  } else {
+                    atomic_thread_fence(std::memory_order_seq_cst);        
+                   }
+                  
+
+                } else {
+                  atomic_thread_fence(std::memory_order_seq_cst);        
+                 currval = nptrs->load(std::memory_order_consume);
+                }
         }
         ctx.nptr_ = nptrs;
         ctx.pendingNewVal_ = newVal;
@@ -453,16 +468,20 @@ public:
             nptrs = ctx.nptr_;
             currval = nptrs->load(std::memory_order_consume);
             for (int n = _WFQ_MAX_TRY_; n > 0; n--) {
-                // if (!currval &&
-                if ( (!currval || !( currval = nptrs->load(std::memory_order_consume) ) ) &&
-                        nptrs->compare_exchange_strong(currval, newVal,
+                
+                 if ( !currval  ) {
+                        if(nptrs->compare_exchange_strong(currval, newVal,
                                                        std::memory_order_release,
                                                        std::memory_order_consume)) {
                     ctx.hasq_ = 0;
                     atomic_thread_fence(std::memory_order_seq_cst);
                     return true;
-                }
-                atomic_thread_fence(std::memory_order_seq_cst);
+}
+                } else {
+atomic_thread_fence(std::memory_order_seq_cst);
+currval = nptrs->load(std::memory_order_consume);
+}
+                
             }
             return false;
         }
@@ -470,16 +489,20 @@ public:
         nptrs = &nptr_[head];
         currval = nptrs->load(std::memory_order_consume);
         for (int n = _WFQ_MAX_TRY_; n > 0; n--) {
-            // if (!currval &&
-            if ( (!currval || !( currval = nptrs->load(std::memory_order_consume) ) ) &&
-                    nptrs->compare_exchange_strong(currval, newVal,
-                                                   std::memory_order_release,
-                                                   std::memory_order_consume)) {
-                atomic_thread_fence(std::memory_order_seq_cst);
-                return true;
-            }
-            atomic_thread_fence(std::memory_order_seq_cst);
-        }
+                if ( !currval  ) {
+                        if(nptrs->compare_exchange_strong(currval, newVal,
+                                                       std::memory_order_release,
+                                                       std::memory_order_consume)) {
+                   // ctx.hasq_ = 0;
+                    atomic_thread_fence(std::memory_order_seq_cst);
+                    return true;
+}
+                } else {
+atomic_thread_fence(std::memory_order_seq_cst);
+currval = nptrs->load(std::memory_order_consume);
+}
+
+}
         ctx.nptr_ = nptrs;
         ctx.hasq_ = 1;
         return false;
